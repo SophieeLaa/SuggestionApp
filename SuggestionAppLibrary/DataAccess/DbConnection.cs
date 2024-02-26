@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SuggestionAppLibrary.DataAccess
 {
-    public class DbConnection
+    public class DbConnection : IDbConnection
     {
         private readonly IConfiguration _config;
         private readonly IMongoDatabase _db;
@@ -21,11 +21,21 @@ namespace SuggestionAppLibrary.DataAccess
         public MongoClient Client { get; private set; }
         public IMongoCollection<CategoryModel> CategoryCollection { get; private set; }
         public IMongoCollection<StatusModel> StatusCollection { get; private set; }
+        public IMongoCollection<UserModel> UserCollection { get; private set; }
         public IMongoCollection<SuggestionModel> SuggestionCollection { get; private set; }
 
         public DbConnection(IConfiguration config)
         {
             _config = config;
+            Client = new MongoClient(_config.GetConnectionString(_connectionString));
+            DbName = _config["DatabaseName"];
+            _db = Client.GetDatabase(DbName);
+
+            CategoryCollection = _db.GetCollection<CategoryModel>(CategoryCollectionName);
+            StatusCollection = _db.GetCollection<StatusModel>(StatusCollectionName);
+            UserCollection = _db.GetCollection<UserModel>(UserCollectionName);
+            SuggestionCollection = _db.GetCollection<SuggestionModel>(SuggestionCollectionName);
+
         }
     }
 }
