@@ -1,4 +1,4 @@
-﻿namespace SuggestionAppUI
+﻿ namespace SuggestionAppUI
 {
     public static class RegisterServices
     {
@@ -8,6 +8,10 @@
             builder.Services.AddServerSideBlazor();
             builder.Services.AddMemoryCache();
 
+            builder.Services.AddSingleton<IDbConnection, DbConnection>();
+            builder.Services.AddTransient<ICategoryData, MongoCategoryData>();
+            builder.Services.AddTransient<IStatusData, MongoStatusData>();
+            builder.Services.AddSingleton<IUserData, MongoUserData>();  
         }
     }
 }

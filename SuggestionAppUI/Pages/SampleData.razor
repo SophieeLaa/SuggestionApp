@@ -1,0 +1,80 @@
+﻿@page "/SampleData"
+@inject ICategoryData categoryData
+@inject IStatusData statusData
+
+<h3>SampleData</h3>
+
+@code {
+    private async Task CreateCategories()
+    {
+        var categories = await categoryData.GetAllCategories();
+        if(categories?.Count >0)
+        {
+            return;
+        }
+        CategoryModel cat = new()
+            {
+                CategoryName = "Courses",
+                CategoryDescription = "Full paid courses."
+            };
+        await categoryData.CreateCategory(cat);
+
+        cat = new()
+            {
+                CategoryName = "Dev Questions",
+                CategoryDescription = "Advice onbeing a developer."
+            };
+        await categoryData.CreateCategory(cat);
+
+        cat = new()
+            {
+                CategoryName = "In-Depth Tutorial",
+                CategoryDescription = "A deep-dive video on how to use a topic."
+            };
+        await categoryData.CreateCategory(cat);
+
+        cat = new()
+            {
+                CategoryName = " 10-Minute Training",
+                CategoryDescription = "a quick \"How do I use this?\" video."
+            };
+        await categoryData.CreateCategory(cat);
+
+        cat = new()
+            {
+                CategoryName = "Other",
+                CategoryDescription = "Not sure which category this fits in."
+            };
+        await categoryData.CreateCategory(cat);
+    }
+
+    private async Task CreateStatuses()
+    {
+        var statuses = await statusData.GetAllStatuses();
+        if (statuses?.Count > 0)
+        {
+            return;
+        }
+        StatusModel stat = new()
+            {
+                StatusName = "Completed",
+                StatusDescription = "The Suggestion was accepted and the corresponding item was created."
+            };
+        await statusData.CreateStatus(stat);
+
+        stat = new()
+            {
+                StatusName = "Watching",
+                StatusDescription = "The Suggestion was accepted and the corresponding item was created."
+            };
+        await statusData.CreateStatus(stat);
+
+        stat = new()
+            {
+                StatusName = "Upcoming",
+                StatusDescription = "The Suggestion was accepted and it will be released soon."
+            };
+        await statusData.CreateStatus(stat); 
+    }
+}
+

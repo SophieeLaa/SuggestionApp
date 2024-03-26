@@ -2,7 +2,7 @@
 
 namespace SuggestionAppLibrary.DataAccess
 {
-    public class MongoSuggestionData
+    public class MongoSuggestionData : ISuggestionData
     {
         private readonly IDbConnection _db;
         private readonly IUserData _userData;
@@ -65,7 +65,7 @@ namespace SuggestionAppLibrary.DataAccess
                 var suggestionsInTransaction = db.GetCollection<SuggestionModel>(_db.SuggestionCollectionName);
                 var suggestion = (await suggestionsInTransaction.FindAsync(s => s.Id == suggestionId)).First();
                 bool isUpvote = suggestion.UserVotes.Add(userId);
-                if(isUpvote == false)
+                if (isUpvote == false)
                 {
                     suggestion.UserVotes.Remove(userId);
                 }
@@ -73,13 +73,13 @@ namespace SuggestionAppLibrary.DataAccess
 
                 var userInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
                 var user = await _userData.GetUser(suggestion.Author.Id);
-                if(isUpvote)
+                if (isUpvote)
                 {
                     user.VotedOnSuggestins.Add(item: new BasicSuggestionModel(suggestion));
                 }
                 else
                 {
-                    var suggestionToRemove =  user.VotedOnSuggestins.Where(s => s.Id == suggestionId).First();
+                    var suggestionToRemove = user.VotedOnSuggestins.Where(s => s.Id == suggestionId).First();
                     user.VotedOnSuggestins.Remove(item: new BasicSuggestionModel(suggestion));
                 }
                 await userInTransaction.ReplaceOneAsync(u => u.Id == userId, user);
@@ -92,5 +92,29 @@ namespace SuggestionAppLibrary.DataAccess
                 throw;
             }
         }
+        public async Task CreateSuggestion(SuggestionModel suggestion)
+        {
+            var client = _db.Client;
+            using var session = await client.StartSessionAsync();
+            session.StartTransaction();
+            try
+            {
+                var db = client.GetDatabase(_db.DbName);
+                var suggestionsInTransaction = db.GetCollection<SuggestionModel>(_db.SuggestionCollectionName);
+                await suggestionsInTransaction.InsertOneAsync(suggestion);
+
+                var usersInTransaction = db.GetCollection<UserModel>(_db.UserCollectionName);
+                var user = await _userData.GetUser(suggestion.Author.Id);
+                user.AuthoredSuggestions.Add(new BasicSuggestionModel(suggestion));
+                await usersInTransaction.ReplaceOneAsync(u => u.Id == user.Id, user);
+                await session.CommitTransactionAsync();
+            }
+            catch (Exception ex)
+            {
+                await session.AbortTransactionAsync();
+                throw;
+            }
+        }
+
     }
 }
